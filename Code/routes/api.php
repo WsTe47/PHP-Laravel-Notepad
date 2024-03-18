@@ -1,19 +1,10 @@
 <?php
-
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NoteController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// API 路由
+Route::get('/v1/notes', [NoteController::class, 'index'])->name('notes.index');
+Route::post('/v1/notes/add', [NoteController::class, 'addNoteWithTags'])->name('notes.add');
+Route::post('/v1/notes/copy/{id}', [NoteController::class, 'copyNote'])->name('notes.copy');
+Route::delete('/v1/notes/delete/{id}', [NoteController::class, 'deleteNote'])->name('notes.delete');
+Route::post('/v1/notes/restore/{id}', [NoteController::class, 'restoreNote'])->name('notes.restore');
