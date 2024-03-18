@@ -16,16 +16,17 @@
 <h2>添加笔记</h2>
 <form id="addNoteForm">
     @csrf
-    <input type="text" name="title" placeholder="Note Title">
-    <textarea name="content" placeholder="Note Content"></textarea>
-    <input type="text" name="tags[]" placeholder="Tag 1">
-    <input type="text" name="tags[]" placeholder="Tag 2">
+    <!-- 在输入框中设置最大长度 -->
+    <input type="text" name="title" placeholder="Note Title" maxlength="10">
+    <textarea name="content" placeholder="Note Content" maxlength="100"></textarea>
+    <input type="text" name="tags[]" placeholder="Tag 1" maxlength="5">
+    <input type="text" name="tags[]" placeholder="Tag 2" maxlength="5">
+
     <!-- 可以根据需要添加更多的标签输入框 -->
-    <button type="addSubmit">添加笔记</button>
+    <button type="submit">添加笔记</button>
 </form>
 
 <script>
-    // 设置AJAX头部，默认携带CSRF TOKEN
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -75,8 +76,34 @@
     }
 
     // 添加笔记
-    $('#addNoteForm').on('addSubmit', function (e) {
+    $('#addNoteForm').on('submit', function (e) {
         e.preventDefault();
+        var title = $('input[name="title"]').val();
+        var content = $('textarea[name="content"]').val();
+        // 校验标题是否含有符号
+        if(/[^a-zA-Z0-9\s]/.test(title)) {
+            alert('标题不允许含有符号！');
+            return; // 如果含有符号，停止表单提交
+        }
+        // 校验标题长度，虽然已经通过HTML限制，但是额外校验增强安全性
+        if(title.length > 10) {
+            alert('标题长度不能超过10个字符！');
+            return;
+        }
+        // 校验正文长度
+        if(content.length > 100) {
+            alert('正文长度不能超过100个字符！');
+            return;
+        }
+        // 校验每个标签的长度
+        var tagsOverLength = $('input[name="tags[]"]').toArray().some(function(tag) {
+            return tag.value.length > 5;
+        });
+        if(tagsOverLength) {
+            alert('每个标签长度不能超过5个字符！');
+            return;
+        }
+
         var formData = $(this).serialize();
         $.ajax({
             url: '/api/v1/notes/add',

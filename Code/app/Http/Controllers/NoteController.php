@@ -12,10 +12,10 @@ class NoteController extends Controller
 {
     public function index()
     {
-        $notes = Note::all();
-        return view('notes.index', compact('notes'));
-//        return response()->json($notes);
-//返回view是网页，json在测试时候先用的。
+        $notes = Note::with('tags')->get();
+//        return view('notes.index', compact('notes'));
+        return response()->json($notes);
+
     }
 
     public function addNoteWithTags(Request $request)
