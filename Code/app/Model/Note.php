@@ -16,4 +16,9 @@ class Note extends Model
     {
         return $this->belongsToMany(Tag::class, 'note_tag');
     }
+    public function scopeWhereTitle($query, $title)
+    {
+        return $query->where('title', $title);
+    }
+
 }
