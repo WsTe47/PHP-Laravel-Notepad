@@ -7,6 +7,8 @@ use App\Model\Note;
 use App\Model\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
 
 
 class NoteController extends Controller
@@ -35,13 +37,21 @@ class NoteController extends Controller
 
         $note->save();
 
+        // 在执行查询前启用查询日志
+        DB::enableQueryLog();
+
         $tagIds = [];
+        //foreach导致的潜在的N+1问题
         foreach ($request->tags as $tagName) {
-            $tag = Tag::firstOrCreate(['name' => $tagName]);
+            $tag = Tag::with('notes')->firstOrCreate(['name' => $tagName]);
             $tagIds[] = $tag->id;
         }
 
         $note->tags()->attach($tagIds);
+
+        //查询日志查看
+        $queries = DB::getQueryLog();
+        dd($queries);
 
         return response()->json(['message' => '添加成功！'], 200);
     }
