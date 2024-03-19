@@ -25,10 +25,8 @@ class NoteController extends Controller
     //showDeleted:用于展示“回收站”的页面
     public function showDeletedNotes()
     {
-        // 从数据库获取已删除的笔记，包括它们的标签
         $deletedNotes = Note::onlyTrashed()->with('tags')->get();
 
-        // 返回一个视图，并将已删除的笔记数据传递给这个视图
         return view('deleted-notes', ['deletedNotes' => $deletedNotes]);
     }
 
@@ -47,8 +45,8 @@ class NoteController extends Controller
 
         $note->save();
 
-        // 在执行查询前启用查询日志
-        DB::enableQueryLog();
+//     // 在执行查询前启用查询日志
+//        DB::enableQueryLog();
 
         $tagIds = [];
         //foreach导致的潜在的N+1问题
@@ -59,9 +57,9 @@ class NoteController extends Controller
 
         $note->tags()->attach($tagIds);
 
-        //查询日志查看
-        $queries = DB::getQueryLog();
-        dd($queries);
+//        //查询日志查看
+//        $queries = DB::getQueryLog();
+//        dd($queries);
 
         return response()->json(['message' => '添加成功！'], 200);
     }
@@ -70,15 +68,14 @@ class NoteController extends Controller
     // copyNote 复制笔记功能
     public function copyNote($id)
     {
-        $originalNote = Note::with('tags')->findOrFail($id); // 确保加载了 tags 关系
+        $originalNote = Note::with('tags')->findOrFail($id);
         $newNote = $originalNote->replicate(); // 复制 note
         $newNote->title = $this->generateNewTitle($originalNote->title); // 生成新标题
         $newNote->save(); // 保存新 note
 
         // 复制每个 tag 并关联到新 note
         foreach ($originalNote->tags as $tag) {
-            // 此处无需复制 Tag，因为 Tag 对象可能被多个 Note 共享
-            // 直接将现有的 Tag 对象与新的 Note 对象关联即可
+
             $newNote->tags()->attach($tag->id);
         }
 
