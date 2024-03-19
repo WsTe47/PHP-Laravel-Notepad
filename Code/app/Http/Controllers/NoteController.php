@@ -22,6 +22,16 @@ class NoteController extends Controller
 
     }
 
+    //showDeleted:用于展示“回收站”的页面
+    public function showDeletedNotes()
+    {
+        // 从数据库获取已删除的笔记，包括它们的标签
+        $deletedNotes = Note::onlyTrashed()->with('tags')->get();
+
+        // 返回一个视图，并将已删除的笔记数据传递给这个视图
+        return view('deleted-notes', ['deletedNotes' => $deletedNotes]);
+    }
+
     // addNoteWithTags 正常的新增笔记功能。服务端再次校验了一下title是否含有（）
     public function addNoteWithTags(Request $request)
     {
@@ -116,11 +126,11 @@ class NoteController extends Controller
             return response()->json(['message' => 'Note deleted successfully']);
         }
 
-        return response()->json(['message' => 'Note not found'], 404);
+        return response()->json(['message' => '笔记已移至回收站'], 404);
     }
 
     // restoreNote 用于软删除的恢复
-    // TODO：目前还没有完成测试、前端编写。
+
     public function restoreNote($id)
     {
         $note = Note::withTrashed()->where('id', $id)->first();
@@ -129,6 +139,13 @@ class NoteController extends Controller
             return response()->json(['message' => 'Note restored successfully']);
         }
 
-        return response()->json(['message' => 'Note not found'], 404);
+        return response()->json(['message' => '笔记已从回收站恢复'], 404);
+    }
+
+    // getDeletedNotes 用于获取回收站内容。
+    public function getDeletedNotes()
+    {
+        $deletedNotes = Note::onlyTrashed()->with('tags')->get();
+        return response()->json($deletedNotes);
     }
 }

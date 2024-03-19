@@ -6,3 +6,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/notes', function () {
     return view('notes');
 });
+
+Route::get('/deleted-notes', [NoteController::class, 'showDeletedNotes'])->name('notes.showDeleted');
