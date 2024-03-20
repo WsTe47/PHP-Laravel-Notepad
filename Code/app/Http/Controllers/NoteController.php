@@ -73,11 +73,11 @@ class NoteController extends Controller
         $newNote->title = $this->generateNewTitle($originalNote->title); // 生成新标题
         $newNote->save(); // 保存新 note
 
-        // 复制每个 tag 并关联到新 note
-        foreach ($originalNote->tags as $tag) {
+        // 获取所有标签ID
+        $tagsIds = $originalNote->tags->pluck('id')->toArray();
 
-            $newNote->tags()->attach($tag->id);
-        }
+        // 一次性关联所有标签到新 note
+        $newNote->tags()->attach($tagsIds);
 
         return response()->json(['message' => '复制成功！', 'newNote' => $newNote]);
     }
@@ -85,27 +85,36 @@ class NoteController extends Controller
     // generateNewTitle 辅助笔记复制，用于标题生成的逻辑判断。
     public function generateNewTitle($title)
     {
-        $maxNumber = 99; // 最大数字，题目要求99，这里改为5便于测试。
+        $maxNumber = 3; // 最大数字，测试时可以调整为3或5
         $number = 1;
-        $baseTitle = $title;
+
+        // 匹配标题中最后的数字序列 (如 "Title(2)(3)" 中的 "(2)(3)")
+        if (preg_match_all('/\((\d+)\)/', $title, $matches)) {
+            // $matches[1] 是所有匹配到的数字
+            $lastNumber = (int)end($matches[1]); // 获取最后一个数字
+
+            // 如果最后一个数字小于最大值，只递增这个数字
+            if ($lastNumber < $maxNumber) {
+                $number = $lastNumber + 1;
+                $baseTitle = substr($title, 0, strrpos($title, '(')); // 移除标题中的最后一个数字序列
+            } else {
+                // 如果最后一个数字已经是最大值，在整个序列后面添加新的 "(1)"
+                $baseTitle = $title;
+            }
+        } else {
+            // 如果标题中没有数字序列，我们从 "(1)" 开始
+            $baseTitle = $title;
+        }
+
         $newTitle = $baseTitle . "($number)";
 
+        // 检查新生成的标题是否已存在，并递增数字直到找到一个不存在的标题
         while (Note::where('title', $newTitle)->exists()) {
-            if (preg_match('/^(.*?)(\((\d+)\))+$/', $baseTitle, $matches)) {
-                $baseTitle = $matches[1];
-                $number = (int)$matches[3];
-
-                if ($number < $maxNumber) {
-                    // 没有最大值，加数字
-                    $number++;
-                } else {
-                    // 最大值，除了最后一个括号，其余均为base。之后再加。
-                    $baseTitle = $baseTitle . $matches[2];
-                    $number = 1;
-                }
-            } else {
-                // 没数字就直接递增
-                $number++;
+            $number++;
+            // 如果超过最大数字，重置为 1 并在原基础上添加 "(1)"
+            if ($number > $maxNumber) {
+                $number = 1;
+                $baseTitle = $newTitle; // 新的基础标题是上一个尝试过的标题
             }
             $newTitle = $baseTitle . "($number)";
         }
