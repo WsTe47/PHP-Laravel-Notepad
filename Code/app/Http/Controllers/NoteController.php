@@ -85,7 +85,7 @@ class NoteController extends Controller
     // generateNewTitle 辅助笔记复制，用于标题生成的逻辑判断。
     public function generateNewTitle($title)
     {
-        $maxNumber = 3; // 最大数字，测试时可以调整为3或5
+        $maxNumber = 5; // 最大数字，测试时可以调整为3或5
         $number = 1;
 
         // 匹配标题中最后的数字序列 (如 "Title(2)(3)" 中的 "(2)(3)")

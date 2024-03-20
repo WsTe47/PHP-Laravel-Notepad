@@ -8,3 +8,7 @@ Route::get('/notes', function () {
 });
 
 Route::get('/deleted-notes', [NoteController::class, 'showDeletedNotes'])->name('notes.showDeleted');
+
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
